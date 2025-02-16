@@ -243,4 +243,3 @@ void countGreaterThanSum(char* filename) {
     fclose(file);
     printf("Количество элементов, которые больше суммы всех предыдущих: %d\n", count);
 }
-
