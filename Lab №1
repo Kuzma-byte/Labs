@@ -1,1 +1,246 @@
-mmm;
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+
+
+
+void writeToFile(char* filename);
+void readFromFile(char* filename);
+void findInFile(char* filename);
+void swapElementsInFile(char* filename);
+void sortFile(char* filename);
+void countGreaterThanSum(char* filename);
+
+int main(int argc, char* argv[]) {
+    setlocale(LC_ALL, "Rus");
+    if (argc != 2) {
+        printf("Использование: %s <имя_файла>\n", argv[0]);
+        return 1;
+    }
+  
+        
+    char* filename = argv[1];
+    int choice;
+
+    do {
+        printf("\n--- Меню ---\n");
+        printf("1. Ввести данные и записать в файл\n");
+        printf("2. Прочитать данные из файла и вывести на экран\n");
+        printf("3. Поиск данных в файле\n");
+        printf("4. Поменять местами элементы в файле\n");
+        printf("5. Отсортировать данные в файле\n");
+        printf("6. Подсчитать элементы, большие суммы предыдущих\n");
+        printf("0. Выход\n");
+        printf("Выберите действие: ");
+        scanf_s("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            writeToFile(filename);
+            break;
+        case 2:
+            readFromFile(filename);
+            break;
+        case 3:
+            findInFile(filename);
+            break;
+        case 4:
+            swapElementsInFile(filename);
+            break;
+        case 5:
+            sortFile(filename);
+            break;
+        case 6:
+            countGreaterThanSum(filename);
+            break;
+        case 0:
+            printf("Выход из программы.\n");
+            break;
+        default:
+            printf("Неверный выбор. Пожалуйста, попробуйте снова.\n");
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+
+void writeToFile(char* filename) {
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        perror("Ошибка при открытии файла для записи");
+        return;
+    }
+
+    int num;
+    printf("Введите целые числа (для завершения введите -1):\n");
+    while (scanf("%d", &num) == 1 && num != -1) {
+        fwrite(&num, sizeof(int), 1, file);
+    }
+
+    fclose(file);
+    printf("Данные успешно записаны в файл '%s'.\n", filename);
+}
+
+void readFromFile(char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        perror("Ошибка при открытии файла для чтения");
+        return;
+    }
+
+    int num;
+    printf("Содержимое файла '%s':\n", filename);
+    while (fread(&num, sizeof(int), 1, file) == 1) {
+        printf("%d ", num);
+    }
+    printf("\n");
+
+    fclose(file);
+}
+
+void findInFile(char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        perror("Ошибка при открытии файла для поиска");
+        return;
+    }
+
+    int target;
+    printf("Введите число для поиска: ");
+    scanf("%d", &target);
+
+    int num;
+    int found = 0;
+    while (fread(&num, sizeof(int), 1, file) == 1) {
+        if (num == target) {
+            found = 1;
+            break;
+        }
+    }
+
+    if (found) {
+        printf("Число %d найдено в файле '%s'.\n", target, filename);
+    }
+    else {
+        printf("Число %d НЕ найдено в файле '%s'.\n", target, filename);
+    }
+
+    fclose(file);
+}
+
+void swapElementsInFile(char* filename) {
+    FILE* file = fopen(filename, "rb+");
+    if (file == NULL) {
+        perror("Ошибка при открытии файла для обмена элементов");
+        return;
+    }
+
+    int pos1, pos2;
+    printf("Введите индексы элементов для замены (начиная с 0): ");
+    scanf("%d %d", &pos1, &pos2);
+
+    int num1, num2;
+
+    // Проверка корректности индексов
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    int count = file_size / sizeof(int);
+
+    if (pos1 < 0 || pos1 >= count || pos2 < 0 || pos2 >= count) {
+        printf("Ошибка: индексы выходят за пределы файла.\n");
+        fclose(file);
+        return;
+    }
+
+    // Чтение первого элемента
+    fseek(file, pos1 * sizeof(int), SEEK_SET);
+    fread(&num1, sizeof(int), 1, file);
+
+    // Чтение второго элемента
+    fseek(file, pos2 * sizeof(int), SEEK_SET);
+    fread(&num2, sizeof(int), 1, file);
+
+    // Запись второго элемента на место первого
+    fseek(file, pos1 * sizeof(int), SEEK_SET);
+    fwrite(&num2, sizeof(int), 1, file);
+
+    // Запись первого элемента на место второго
+    fseek(file, pos2 * sizeof(int), SEEK_SET);
+    fwrite(&num1, sizeof(int), 1, file);
+
+    fclose(file);
+    printf("Элементы на позициях %d и %d были заменены.\n", pos1, pos2);
+}
+
+void swap(FILE* file, int pos1, int pos2) {
+    int num1, num2;
+
+    // Чтение первого числа
+    fseek(file, pos1 * sizeof(int), SEEK_SET);
+    fread(&num1, sizeof(int), 1, file);
+
+    // Чтение второго числа
+    fseek(file, pos2 * sizeof(int), SEEK_SET);
+    fread(&num2, sizeof(int), 1, file);
+
+    // Обмен значениями
+    fseek(file, pos1 * sizeof(int), SEEK_SET);
+    fwrite(&num2, sizeof(int), 1, file);
+
+    fseek(file, pos2 * sizeof(int), SEEK_SET);
+    fwrite(&num1, sizeof(int), 1, file);
+}
+
+void sortFile(char* filename) {
+    FILE* file = fopen(filename, "rb+");
+    if (file == NULL) {
+        perror("Ошибка при открытии файла для сортировки");
+        return;
+    }
+
+    // Определение количества элементов в файле
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    int count = file_size / sizeof(int);
+
+    // Пузырьковая сортировка
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            int num1, num2;
+            fseek(file, j * sizeof(int), SEEK_SET);
+            fread(&num1, sizeof(int), 1, file);
+            fread(&num2, sizeof(int), 1, file);
+
+            if (num1 > num2) {
+                swap(file, j, j + 1);
+            }
+        }
+    }
+
+    fclose(file);
+    printf("Файл '%s' успешно отсортирован.\n", filename);
+}
+
+void countGreaterThanSum(char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        perror("Ошибка при открытии файла для подсчета");
+        return;
+    }
+
+    int num;
+    int sum = 0;
+    int count = 0;
+
+    while (fread(&num, sizeof(int), 1, file) == 1) {
+        if (num > sum) {
+            count++;
+        }
+        sum += num;
+    }
+
+    fclose(file);
+    printf("Количество элементов, которые больше суммы всех предыдущих: %d\n", count);
+}
+
