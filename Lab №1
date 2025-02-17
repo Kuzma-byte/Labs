@@ -14,10 +14,7 @@ void countGreaterThanSum(char* filename);
 
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "Rus");
-    if (argc != 2) {
-        printf("Использование: %s <имя_файла>\n", argv[0]);
-        return 1;
-    }
+  
   
         
     char* filename = argv[1];
@@ -66,7 +63,7 @@ int main(int argc, char* argv[]) {
 }
 
 void writeToFile(char* filename) {
-    FILE* file = fopen(filename, "wb");
+    FILE* file = fopen("filename", "wb");
     if (file == NULL) {
         perror("Ошибка при открытии файла для записи");
         return;
@@ -79,11 +76,11 @@ void writeToFile(char* filename) {
     }
 
     fclose(file);
-    printf("Данные успешно записаны в файл '%s'.\n", filename);
+    printf("Данные успешно записаны в файл '%s'.\n", "filename");
 }
 
 void readFromFile(char* filename) {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = fopen("filename", "rb");
     if (file == NULL) {
         perror("Ошибка при открытии файла для чтения");
         return;
@@ -100,7 +97,7 @@ void readFromFile(char* filename) {
 }
 
 void findInFile(char* filename) {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = fopen("filename", "rb");
     if (file == NULL) {
         perror("Ошибка при открытии файла для поиска");
         return;
@@ -108,7 +105,7 @@ void findInFile(char* filename) {
 
     int target;
     printf("Введите число для поиска: ");
-    scanf("%d", &target);
+    scanf_s("%d", &target);
 
     int num;
     int found = 0;
@@ -120,17 +117,17 @@ void findInFile(char* filename) {
     }
 
     if (found) {
-        printf("Число %d найдено в файле '%s'.\n", target, filename);
+        printf("Число %d найдено в файле '%s'.\n", target, "filename");
     }
     else {
-        printf("Число %d НЕ найдено в файле '%s'.\n", target, filename);
+        printf("Число %d НЕ найдено в файле '%s'.\n", target, "filename");
     }
 
     fclose(file);
 }
 
 void swapElementsInFile(char* filename) {
-    FILE* file = fopen(filename, "rb+");
+    FILE* file = fopen("filename", "rb+");
     if (file == NULL) {
         perror("Ошибка при открытии файла для обмена элементов");
         return;
@@ -138,7 +135,7 @@ void swapElementsInFile(char* filename) {
 
     int pos1, pos2;
     printf("Введите индексы элементов для замены (начиная с 0): ");
-    scanf("%d %d", &pos1, &pos2);
+    scanf_s("%d %d", &pos1, &pos2);
 
     int num1, num2;
 
@@ -193,7 +190,7 @@ void swap(FILE* file, int pos1, int pos2) {
 }
 
 void sortFile(char* filename) {
-    FILE* file = fopen(filename, "rb+");
+    FILE* file = fopen("filename", "rb+");
     if (file == NULL) {
         perror("Ошибка при открытии файла для сортировки");
         return;
@@ -223,7 +220,7 @@ void sortFile(char* filename) {
 }
 
 void countGreaterThanSum(char* filename) {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = fopen("filename", "rb");
     if (file == NULL) {
         perror("Ошибка при открытии файла для подсчета");
         return;
