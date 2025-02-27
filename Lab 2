@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Функция для записи данных в файл
+void writeToFile(const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        printf("Ошибка открытия файла для записи.\n");
+        exit(1);
+    }
+
+    char input[100];
+    printf("Введите слова (для завершения ввода введите 'stop'):\n");
+
+    while (1) {
+        scanf("%s", input);
+        if (strcmp(input, "stop") == 0) {
+            break;
+        }
+        fprintf(file, "%s\n", input);
+    }
+
+    fclose(file);
+}
+
+// Функция для чтения данных из файла и вывода на экран
+void readFromFile(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Ошибка открытия файла для чтения.\n");
+        exit(1);
+    }
+
+    char word[100];
+    printf("Содержимое файла:\n");
+    while (fscanf(file, "%s", word) != EOF) {
+        printf("%s\n", word);
+    }
+
+    fclose(file);
+}
+
+// Функция для поиска слов заданной длины
+void findWordsByLength(const char *filename, int length) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Ошибка открытия файла для поиска.\n");
+        exit(1);
+    }
+
+    char word[100];
+    printf("Слова длиной %d символов:\n", length);
+    while (fscanf(file, "%s", word) != EOF) {
+        if (strlen(word) == length) {
+            printf("%s\n", word);
+        }
+    }
+
+    fclose(file);
+}
+
+int main() {
+    const char *filename = "words.txt";
+    writeToFile(filename);
+    readFromFile(filename);
+
+    int length;
+    printf("Введите длину слов для поиска: ");
+    scanf("%d", &length);
+    findWordsByLength(filename, length);
+
+    return 0;
+}
