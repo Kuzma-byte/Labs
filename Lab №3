@@ -1,0 +1,36 @@
+/*
+Задание: Вывести содержимое старшего байта целого числа (int) в десятичной системе счисления, используя поля бит.
+Фамилия студента: Дащенко
+Дата написания кода: 23.03.2025
+*/
+#include <locale.h>
+#include <stdio.h>
+
+
+// Объединение для представления целого числа и его представления через поля бит (по 8 бит)
+typedef union {
+    int integer;  // Исходное целое число
+    struct {
+        unsigned int byte0 : 8;  // Младший байт
+        unsigned int byte1 : 8;
+        unsigned int byte2 : 8;
+        unsigned int byte3 : 8;  // Старший байт
+    } bits;
+} IntBitsUnion;
+
+int main(void) {
+    setlocale(LC_ALL, "Russian");
+    IntBitsUnion data;
+
+    // Запрос ввода целого числа от пользователя
+    printf("Введите целое число: ");
+    if (scanf_s("%d", &data.integer) != 1) {
+        printf("Ошибка при вводе числа.\n");
+        return 1;
+    }
+
+    // Вывод содержимого старшего байта в десятичной системе счисления
+    printf("Содержимое старшего байта: %u\n", data.bits.byte3);
+
+    return 0;
+}
