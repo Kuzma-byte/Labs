@@ -1,36 +1,296 @@
 /*
-Задание: Вывести содержимое старшего байта целого числа (int) в десятичной системе счисления, используя поля бит.
+Задание:
+1. Для целого числа (int) вывести содержимое старшего байта (в десятичной системе счисления) с использованием битовых полей.
+2. Структура содержит информацию о футбольных командах: количество побед (число), название (указатель), вложенная структура – год последней победы (строка фиксированной длины) и количество проигрышей.
+   Найти команды с количеством побед больше заданного.
+   Удалить команды с заданным названием.
+
 Фамилия студента: Дащенко
-Дата написания кода: 23.03.2025
+Дата: 23.03.2025
 */
-#include <locale.h>
+
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
 
 
-// Объединение для представления целого числа и его представления через поля бит (по 8 бит)
+
+
 typedef union {
-    int integer;  // Исходное целое число
+    int value;
     struct {
-        unsigned int byte0 : 8;  // Младший байт
+        unsigned int byte0 : 8;  
         unsigned int byte1 : 8;
         unsigned int byte2 : 8;
-        unsigned int byte3 : 8;  // Старший байт
-    } bits;
-} IntBitsUnion;
+        unsigned int byte3 : 8;  
+    } bytes;
+} IntUnion;
 
-int main(void) {
-    setlocale(LC_ALL, "Russian");
-    IntBitsUnion data;
+void task1() {
+    IntUnion data;
+    printf("Задача №1.\nВведите целое число: ");
+    if (scanf("%d", &data.value) != 1) {
+        fprintf(stderr, "Ошибка ввода числа.\n");
+        while (getchar() != '\n');  
+        return;
+    }
+    while (getchar() != '\n'); 
+    printf("Содержимое старшего байта: %u\n", data.bytes.byte3);
+}
 
-    // Запрос ввода целого числа от пользователя
-    printf("Введите целое число: ");
-    if (scanf_s("%d", &data.integer) != 1) {
-        printf("Ошибка при вводе числа.\n");
-        return 1;
+typedef struct {
+    int wins;
+    char* name;
+    struct {
+        char year[5];  
+    } lastVictory;
+    int losses;
+} FootballTeam;
+
+void inputTeamBasic(FootballTeam* team) {
+    printf("Введите количество побед: ");
+    while (scanf("%d", &(team->wins)) != 1) {
+        printf("Неверный ввод. Повторите ввод количества побед: ");
+        while (getchar() != '\n');
+    }
+    while (getchar() != '\n');  
+
+    char temp[256];
+    printf("Введите название команды: ");
+    if (fgets(temp, sizeof(temp), stdin) != NULL) {
+        size_t len = strlen(temp);
+        if (len > 0 && temp[len - 1] == '\n')
+            temp[len - 1] = '\0';  
+    }
+    else {
+        fprintf(stderr, "Ошибка ввода названия команды.\n");
+        temp[0] = '\0';
+    }
+    team->name = (char*)malloc(strlen(temp) + 1);
+    if (team->name == NULL) {
+        fprintf(stderr, "Ошибка выделения памяти для названия команды.\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(team->name, temp);
+}
+
+
+void outputTeamBasic(const FootballTeam* team) {
+    printf("Количество побед: %d\n", team->wins);
+    printf("Название команды: %s\n", team->name);
+}
+
+
+FootballTeam inputTeam() {
+    FootballTeam team;
+    inputTeamBasic(&team);
+    char yearTemp[16];
+    printf("Введите год последней победы (4 цифры): ");
+    if (fgets(yearTemp, sizeof(yearTemp), stdin) != NULL) {
+        size_t len = strlen(yearTemp);
+        if (len > 0 && yearTemp[len - 1] == '\n')
+            yearTemp[len - 1] = '\0';
+        
+        strncpy(team.lastVictory.year, yearTemp, 4);
+        team.lastVictory.year[4] = '\0';
+    }
+    else {
+        strcpy(team.lastVictory.year, "0000");  
     }
 
-    // Вывод содержимого старшего байта в десятичной системе счисления
-    printf("Содержимое старшего байта: %u\n", data.bits.byte3);
+    
+    printf("Введите количество проигрышей: ");
+    while (scanf("%d", &team.losses) != 1) {
+        printf("Неверный ввод. Повторите ввод количества проигрышей: ");
+        while (getchar() != '\n');
+    }
+    while (getchar() != '\n');  
+
+    return team;
+}
+
+
+void printTeam(const FootballTeam* team) {
+    printf("Название команды: %s\n", team->name);
+    printf("Количество побед: %d\n", team->wins);
+    printf("Год последней победы: %s\n", team->lastVictory.year);
+    printf("Количество проигрышей: %d\n", team->losses);
+}
+
+
+void printAllTeams(FootballTeam* teams, int count) {
+    if (count == 0) {
+        printf("Нет доступных команд.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++) {
+        printf("Команда %d:\n", i + 1);
+        printTeam(&teams[i]);
+        printf("\n");
+    }
+}
+
+
+void searchByWins(FootballTeam* teams, int count, int minWins) {
+    int found = 0;
+    for (int i = 0; i < count; i++) {
+        if (teams[i].wins > minWins) {
+            printf("Команда %d:\n", i + 1);
+            outputTeamBasic(&teams[i]);
+            printf("\n");
+            found = 1;
+        }
+    }
+    if (!found) {
+        printf("Нет команд с количеством побед больше %d\n", minWins);
+    }
+}
+
+
+FootballTeam* deleteTeamByName(FootballTeam* teams, int* count, const char* nameToDelete) {
+    int newCount = *count;
+    int i = 0;
+    while (i < newCount) {
+        if (strcmp(teams[i].name, nameToDelete) == 0) {
+            free(teams[i].name);
+            
+            for (int j = i; j < newCount - 1; j++) {
+                teams[j] = teams[j + 1];
+            }
+            newCount--;
+            FootballTeam* temp = (FootballTeam*)realloc(teams, sizeof(FootballTeam) * newCount);
+            if (newCount > 0 && temp == NULL) {
+                fprintf(stderr, "Ошибка перераспределения памяти при удалении.\n");
+                exit(EXIT_FAILURE);
+            }
+            teams = temp;
+            
+        }
+        else {
+            i++;
+        }
+    }
+    *count = newCount;
+    return teams;
+}
+
+
+FootballTeam* addTeam(FootballTeam* teams, int* count, FootballTeam newTeam) {
+    int newCount = *count + 1;
+    FootballTeam* temp = (FootballTeam*)realloc(teams, sizeof(FootballTeam) * newCount);
+    if (temp == NULL) {
+        fprintf(stderr, "Ошибка выделения памяти при добавлении новой команды.\n");
+        return teams;
+    }
+    teams = temp;
+    teams[newCount - 1] = newTeam;
+    *count = newCount;
+    return teams;
+}
+
+
+void menuFootballTeams() {
+    FootballTeam* teams = NULL;
+    int teamCount = 0;
+    int choice;
+
+    do {
+        printf("\nМеню работы с футбольными командами:\n");
+        printf("1. Просмотр всех структур\n");
+        printf("2. Поиск команд с количеством побед больше заданного\n");
+        printf("3. Удаление команд по заданному названию\n");
+        printf("4. Добавление новой структуры\n");
+        printf("0. Выход из меню\n");
+        printf("Выберите пункт меню: ");
+        if (scanf("%d", &choice) != 1) {
+            printf("Неверный ввод. Попробуйте ещё раз.\n");
+            while (getchar() != '\n');
+            continue;
+        }
+        while (getchar() != '\n');  
+
+        switch (choice) {
+        case 1:
+            printAllTeams(teams, teamCount);
+            break;
+        case 2: {
+            int minWins;
+            printf("Введите порог количества побед: ");
+            while (scanf("%d", &minWins) != 1) {
+                printf("Неверный ввод. Повторите: ");
+                while (getchar() != '\n');
+            }
+            while (getchar() != '\n');
+            searchByWins(teams, teamCount, minWins);
+            break;
+        }
+        case 3: {
+            char delName[256];
+            printf("Введите название команды для удаления: ");
+            if (fgets(delName, sizeof(delName), stdin) != NULL) {
+                size_t len = strlen(delName);
+                if (len > 0 && delName[len - 1] == '\n')
+                    delName[len - 1] = '\0';
+            }
+            teams = deleteTeamByName(teams, &teamCount, delName);
+            printf("Удаление завершено.\n");
+            break;
+        }
+        case 4: {
+            FootballTeam newTeam = inputTeam();
+            teams = addTeam(teams, &teamCount, newTeam);
+            printf("Команда добавлена.\n");
+            break;
+        }
+        case 0:
+            printf("Выход из меню!\n");
+            break;
+        default:
+            printf("Неправильный выбор. Попробуйте ещё раз.\n");
+        }
+    } while (choice != 0);
+
+    
+    for (int i = 0; i < teamCount; i++) {
+        free(teams[i].name);
+    }
+    free(teams);
+}
+
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+    setbuf(stdout, NULL);  
+    int choice;
+    do {
+        printf("\nГлавное меню:\n");
+        printf("1. Задача №1: Вывод содержимого старшего байта целого числа\n");
+        printf("2. Задача №2: Работа со структурой информации о футбольных командах\n");
+        printf("0. Выход\n");
+        printf("Введите номер задачи: ");
+        if (scanf("%d", &choice) != 1) {
+            printf("Неверный ввод. Попробуйте снова.\n");
+            while (getchar() != '\n');
+            continue;
+        }
+        while (getchar() != '\n');  
+
+        switch (choice) {
+        case 1:
+            task1();
+            break;
+        case 2:
+            menuFootballTeams();
+            break;
+        case 0:
+            printf("Выход из программы.\n");
+            break;
+        default:
+            printf("Неправильный выбор. Попробуйте снова.\n");
+        }
+    } while (choice != 0);
 
     return 0;
 }
