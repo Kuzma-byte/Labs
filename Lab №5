@@ -1,0 +1,358 @@
+/*
+Задание:
+1. Создать два стека для целых чисел. Максимальные размеры стеков вводится с экрана. Вывести
+   из второго стека все элементы, которые встречаются в первом стеке более 2 раз.
+
+2. Создать два стека для целых чисел. Первый стек – организовать ввод по убыванию, второй стек – организовать ввод по возрастанию. Без сортировок и переворачивания исходных
+   стеков сформировать третий стек, упорядоченный по убыванию.
+
+3. В текстовом файле записаны строки – арифметические выражения. Числа – вещественные,
+   знаки действий: -, +, *, / и скобки (). Используя работу со стеками, найти значение каждого выражения
+   и записать в файл результатов. Если в исходном файле в строке есть ошибка – найти её предполагаемую
+   позицию (позицию первой ошибки) и в выходной файл записать сообщение «Ошибка в позиции N».
+
+Фамилия студента: Дащенко
+Дата: 06.04.2025
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <locale.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+
+typedef struct {
+    int* arr;
+    int top;
+    int capacity;
+} StackInt;
+
+
+void clearInputBuffer() {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
+}
+
+
+void task1() {
+    int maxSize1, maxSize2, count1, count2;
+
+    printf("Задание 1: Два стека для целых чисел.\n");
+
+   
+    printf("Введите максимальный размер первого стека: ");
+    while (scanf("%d", &maxSize1) != 1 || maxSize1 <= 0) {
+        printf("Некорректный ввод. Введите положительное целое число для первого стека: ");
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    printf("Введите максимальный размер второго стека: ");
+    while (scanf("%d", &maxSize2) != 1 || maxSize2 <= 0) {
+        printf("Некорректный ввод. Введите положительное целое число для второго стека: ");
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    
+    StackInt* stack1 = (StackInt*)malloc(sizeof(StackInt));
+    if (!stack1) {
+        printf("Ошибка выделения памяти для первого стека.\n");
+        return;
+    }
+    stack1->capacity = maxSize1;
+    stack1->top = -1;
+    stack1->arr = (int*)malloc(maxSize1 * sizeof(int));
+    if (!stack1->arr) {
+        printf("Ошибка выделения памяти для массива первого стека.\n");
+        free(stack1);
+        return;
+    }
+
+    
+    StackInt* stack2 = (StackInt*)malloc(sizeof(StackInt));
+    if (!stack2) {
+        printf("Ошибка выделения памяти для второго стека.\n");
+        free(stack1->arr);
+        free(stack1);
+        return;
+    }
+    stack2->capacity = maxSize2;
+    stack2->top = -1;
+    stack2->arr = (int*)malloc(maxSize2 * sizeof(int));
+    if (!stack2->arr) {
+        printf("Ошибка выделения памяти для массива второго стека.\n");
+        free(stack2);
+        free(stack1->arr);
+        free(stack1);
+        return;
+    }
+
+    
+    printf("Введите количество элементов для первого стека (не более %d): ", maxSize1);
+    while (scanf("%d", &count1) != 1 || count1 < 0 || count1 > maxSize1) {
+        printf("Некорректный ввод. Введите целое число от 0 до %d: ", maxSize1);
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    for (int i = 0; i < count1; i++) {
+        int value;
+        printf("Введите элемент %d для первого стека: ", i + 1);
+        while (scanf("%d", &value) != 1) {
+            printf("Некорректный ввод. Введите целое число: ");
+            clearInputBuffer();
+        }
+        clearInputBuffer();
+        stack1->arr[++(stack1->top)] = value;
+    }
+
+    
+    printf("Введите количество элементов для второго стека (не более %d): ", maxSize2);
+    while (scanf("%d", &count2) != 1 || count2 < 0 || count2 > maxSize2) {
+        printf("Некорректный ввод. Введите целое число от 0 до %d: ", maxSize2);
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    for (int i = 0; i < count2; i++) {
+        int value;
+        printf("Введите элемент %d для второго стека: ", i + 1);
+        while (scanf("%d", &value) != 1) {
+            printf("Некорректный ввод. Введите целое число: ");
+            clearInputBuffer();
+        }
+        clearInputBuffer();
+        stack2->arr[++(stack2->top)] = value;
+    }
+
+   
+    printf("Элементы из второго стека, встречающиеся в первом стеке более 2 раз:\n");
+    int found = 0;
+    while (stack2->top != -1) {
+        int element = stack2->arr[(stack2->top)--]; 
+        int countOccurrence = 0;
+        for (int i = 0; i <= stack1->top; i++) {
+            if (stack1->arr[i] == element)
+                countOccurrence++;
+        }
+        if (countOccurrence > 2) {
+            printf("%d ", element);
+            found = 1;
+        }
+    }
+    if (!found) {
+        printf("Нет элементов, удовлетворяющих условию.");
+    }
+    printf("\n");
+
+    free(stack1->arr); free(stack1);
+    free(stack2->arr); free(stack2);
+}
+
+
+void task2() {
+    int maxSize1, maxSize2, count1, count2;
+
+    printf("Задание 2: Объединение двух стеков в третий, упорядоченный по убыванию.\n");
+
+   
+    printf("Введите максимальный размер первого стека (ввод по убыванию): ");
+    while (scanf("%d", &maxSize1) != 1 || maxSize1 <= 0) {
+        printf("Некорректный ввод. Введите положительное целое число для первого стека: ");
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    printf("Введите максимальный размер второго стека (ввод по возрастанию): ");
+    while (scanf("%d", &maxSize2) != 1 || maxSize2 <= 0) {
+        printf("Некорректный ввод. Введите положительное целое число для второго стека: ");
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    
+    StackInt* stack1 = (StackInt*)malloc(sizeof(StackInt));
+    if (!stack1) {
+        printf("Ошибка выделения памяти для первого стека.\n");
+        return;
+    }
+    stack1->capacity = maxSize1;
+    stack1->top = -1;
+    stack1->arr = (int*)malloc(maxSize1 * sizeof(int));
+    if (!stack1->arr) {
+        printf("Ошибка выделения памяти для массива первого стека.\n");
+        free(stack1);
+        return;
+    }
+
+   
+    StackInt* stack2 = (StackInt*)malloc(sizeof(StackInt));
+    if (!stack2) {
+        printf("Ошибка выделения памяти для второго стека.\n");
+        free(stack1->arr); free(stack1);
+        return;
+    }
+    stack2->capacity = maxSize2;
+    stack2->top = -1;
+    stack2->arr = (int*)malloc(maxSize2 * sizeof(int));
+    if (!stack2->arr) {
+        printf("Ошибка выделения памяти для массива второго стека.\n");
+        free(stack2);
+        free(stack1->arr); free(stack1);
+        return;
+    }
+
+    
+    printf("Введите количество элементов для первого стека (не более %d): ", maxSize1);
+    while (scanf("%d", &count1) != 1 || count1 < 0 || count1 > maxSize1) {
+        printf("Некорректный ввод. Введите целое число от 0 до %d: ", maxSize1);
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    
+    int previousValue;
+    for (int i = 0; i < count1; i++) {
+        int value;
+        if (i == 0) {
+            printf("Введите элемент %d для первого стека: ", i + 1);
+            while (scanf("%d", &value) != 1) {
+                printf("Некорректный ввод. Введите целое число: ");
+                clearInputBuffer();
+            }
+            clearInputBuffer();
+            previousValue = value;
+            stack1->arr[++(stack1->top)] = value;
+        }
+        else {
+            do {
+                printf("Введите элемент %d для первого стека (должен быть меньше %d): ", i + 1, previousValue);
+                while (scanf("%d", &value) != 1) {
+                    printf("Некорректный ввод. Введите целое число: ");
+                    clearInputBuffer();
+                }
+                clearInputBuffer();
+                if (value >= previousValue)
+                    printf("Ошибка: введите число, меньшее чем %d.\n", previousValue);
+            } while (value >= previousValue);
+            previousValue = value;
+            stack1->arr[++(stack1->top)] = value;
+        }
+    }
+
+    
+    printf("Введите количество элементов для второго стека (не более %d): ", maxSize2);
+    while (scanf("%d", &count2) != 1 || count2 < 0 || count2 > maxSize2) {
+        printf("Некорректный ввод. Введите целое число от 0 до %d: ", maxSize2);
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    
+    for (int i = 0; i < count2; i++) {
+        int value;
+        if (i == 0) {
+            printf("Введите элемент %d для второго стека: ", i + 1);
+            while (scanf("%d", &value) != 1) {
+                printf("Некорректный ввод. Введите целое число: ");
+                clearInputBuffer();
+            }
+            clearInputBuffer();
+            previousValue = value; 
+            stack2->arr[++(stack2->top)] = value;
+        }
+        else {
+            do {
+                printf("Введите элемент %d для второго стека (должен быть больше %d): ", i + 1, previousValue);
+                while (scanf("%d", &value) != 1) {
+                    printf("Некорректный ввод. Введите целое число: ");
+                    clearInputBuffer();
+                }
+                clearInputBuffer();
+                if (value <= previousValue)
+                    printf("Ошибка: введите число, большее чем %d.\n", previousValue);
+            } while (value <= previousValue);
+            previousValue = value;
+            stack2->arr[++(stack2->top)] = value;
+        }
+    }
+
+    
+   
+    int totalCount = count1 + count2;
+    StackInt* stack3 = (StackInt*)malloc(sizeof(StackInt));
+    if (!stack3) {
+        printf("Ошибка выделения памяти для третьего стека.\n");
+        free(stack1->arr); free(stack1);
+        free(stack2->arr); free(stack2);
+        return;
+    }
+    stack3->capacity = totalCount;
+    stack3->top = totalCount - 1; 
+    stack3->arr = (int*)malloc(totalCount * sizeof(int));
+    if (!stack3->arr) {
+        printf("Ошибка выделения памяти для массива третьего стека.\n");
+        free(stack3);
+        free(stack1->arr); free(stack1);
+        free(stack2->arr); free(stack2);
+        return;
+    }
+
+    int i = 0;           
+    int j = count2 - 1;  
+    int k = 0;           
+    while (i < count1 && j >= 0) {
+        if (stack1->arr[i] >= stack2->arr[j]) {
+            stack3->arr[k++] = stack1->arr[i++];
+        }
+        else {
+            stack3->arr[k++] = stack2->arr[j--];
+        }
+    }
+    while (i < count1) {
+        stack3->arr[k++] = stack1->arr[i++];
+    }
+    while (j >= 0) {
+        stack3->arr[k++] = stack2->arr[j--];
+    }
+
+    printf("Элементы третьего стека, упорядоченного по убыванию:\n");
+    for (int idx = 0; idx < totalCount; idx++) {
+        printf("%d ", stack3->arr[idx]);
+    }
+    printf("\n");
+
+    free(stack1->arr); free(stack1);
+    free(stack2->arr); free(stack2);
+    free(stack3->arr); free(stack3);
+}
+
+
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+    int choice;
+    printf("Выберите номер задания (1 или 2): ");
+    while (scanf("%d", &choice) != 1) {
+        printf("Некорректный ввод. Повторите выбор задания (1, 2 или 3): ");
+        clearInputBuffer();
+    }
+    clearInputBuffer();
+
+    switch (choice) {
+    case 1:
+        task1();
+        break;
+    case 2:
+        task2();
+        break;
+   
+    default:
+        printf("Некорректный выбор задания.\n");
+    }
+
+    return 0;
+}
