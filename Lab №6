@@ -1,0 +1,415 @@
+/*
+Задание:
+1. Создать очередь для целых чисел. Максимальный размер очереди вводится с экрана.
+   Создать функции для ввода и вывода элементов очереди. Ввести в очередь числа с экрана.
+   После этого перейти в режим, при котором при каждом вводе числа из очереди удаляется
+   первый элемент, и если он совпадает с введенным числом, то оно добавляется в очередь.
+2. Создать дек для целых чисел. Максимальный размер дека вводится с экрана.
+   Создать функции для ввода и вывода элементов дека. При каждом вводе числа слева удаляется
+   элемент, и если он не совпадает с введенным числом, то введенное число добавляется справа.
+3. Проверьте на равенство две очереди. Решение в программе оформляйте через подпрограммы.
+
+Фамилия студента: Дащенко
+Дата написания кода: 22.04.2025
+*/
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+int getInt(const char* prompt) {
+    int number;
+    char term;
+    while (1) {
+        printf("%s", prompt);
+        if (scanf_s("%d", &number) != 1) {
+            printf("Некорректный ввод. Повторите ввод числа.\n");
+            while ((term = getchar()) != '\n' && term != EOF); 
+        }
+        else {
+            while ((term = getchar()) != '\n' && term != EOF); 
+            return number;
+        }
+    }
+}
+
+
+
+typedef struct {
+    int* data;     
+    int front;     
+    int rear;      
+    int count;     
+    int capacity;  
+} Queue;
+
+
+void initQueue(Queue* q, int capacity) {
+    q->data = (int*)malloc(sizeof(int) * capacity);
+    if (q->data == NULL) {
+        printf("Ошибка выделения памяти!\n");
+        exit(1);
+    }
+    q->capacity = capacity;
+    q->front = 0;
+    q->rear = -1;
+    q->count = 0;
+}
+
+
+int isQueueEmpty(Queue* q) {
+    return (q->count == 0);
+}
+
+int isQueueFull(Queue* q) {
+    return (q->count == q->capacity);
+}
+
+
+void enqueue(Queue* q, int value) {
+    if (isQueueFull(q)) {
+        printf("Очередь полна! Невозможно добавить элемент.\n");
+        return;
+    }
+    q->rear = (q->rear + 1) % q->capacity;
+    q->data[q->rear] = value;
+    q->count++;
+}
+
+
+int dequeue(Queue* q, int* success) {
+    if (isQueueEmpty(q)) {
+        printf("Очередь пуста! Невозможно удалить элемент.\n");
+        *success = 0;
+        return 0; 
+    }
+    *success = 1;
+    int value = q->data[q->front];
+    q->front = (q->front + 1) % q->capacity;
+    q->count--;
+    return value;
+}
+
+
+void printQueue(Queue* q) {
+    if (isQueueEmpty(q)) {
+        printf("Очередь пуста.\n");
+        return;
+    }
+    printf("Содержимое очереди: ");
+    for (int i = 0; i < q->count; i++) {
+        int index = (q->front + i) % q->capacity;
+        printf("%d ", q->data[index]);
+    }
+    printf("\n");
+}
+
+
+void freeQueue(Queue* q) {
+    free(q->data);
+}
+
+
+void runQueueTask() {
+    printf("\n=== Задача 1: Работа с очередью ===\n");
+    int maxSize;
+    while (1) {
+        maxSize = getInt("Введите максимальный размер очереди (целое число больше 0): ");
+        if (maxSize > 0)
+            break;
+        printf("Размер очереди должен быть больше 0.\n");
+    }
+    Queue intQueue;
+    initQueue(&intQueue, maxSize);
+
+    printf("Ввод элементов в очередь. Для завершения ввода введите -1.\n");
+    while (1) {
+        int inputVal = getInt("Введите число: ");
+        if (inputVal == -1)
+            break;
+        if (isQueueFull(&intQueue)) {
+            printf("Очередь полна, невозможно добавить новое число.\n");
+        }
+        else {
+            enqueue(&intQueue, inputVal);
+        }
+    }
+
+    printQueue(&intQueue);
+
+    printf("\nРежим обновления очереди:\n"
+        "При каждом вводе числа удаляется первый элемент очереди.\n"
+        "Если удаленный элемент совпадает с введенным числом, то оно добавляется в очередь.\n"
+        "Для завершения введите -1.\n");
+
+    while (1) {
+        int newInput = getInt("Введите число для обновления очереди: ");
+        if (newInput == -1)
+            break;
+        if (isQueueEmpty(&intQueue)) {
+            printf("Очередь пуста, невозможно удалить элемент.\n");
+        }
+        else {
+            int success;
+            int removedVal = dequeue(&intQueue, &success);
+            printf("Удален элемент: %d\n", removedVal);
+            if (removedVal == newInput) {
+                if (isQueueFull(&intQueue)) {
+                    printf("Очередь полна, невозможно добавить число.\n");
+                }
+                else {
+                    enqueue(&intQueue, newInput);
+                    printf("Введенное число %d добавлено в очередь.\n", newInput);
+                }
+            }
+        }
+        printQueue(&intQueue);
+    }
+
+    freeQueue(&intQueue);
+}
+
+
+
+typedef struct {
+    int* data;     
+    int front;     
+    int rear;      
+    int count;     
+    int capacity;  
+} Deque;
+
+
+void initDeque(Deque* dq, int capacity) {
+    dq->data = (int*)malloc(sizeof(int) * capacity);
+    if (dq->data == NULL) {
+        printf("Ошибка выделения памяти!\n");
+        exit(1);
+    }
+    dq->capacity = capacity;
+    dq->front = 0;
+    dq->rear = -1;
+    dq->count = 0;
+}
+
+
+int isDequeEmpty(Deque* dq) {
+    return (dq->count == 0);
+}
+
+
+int isDequeFull(Deque* dq) {
+    return (dq->count == dq->capacity);
+}
+
+
+int popLeft(Deque* dq, int* success) {
+    if (isDequeEmpty(dq)) {
+        printf("Дек пуст, невозможно удалить элемент с левого конца.\n");
+        *success = 0;
+        return 0;
+    }
+    *success = 1;
+    int value = dq->data[dq->front];
+    dq->front = (dq->front + 1) % dq->capacity;
+    dq->count--;
+    return value;
+}
+
+
+void pushRight(Deque* dq, int value) {
+    if (isDequeFull(dq)) {
+        printf("Дек полон, невозможно добавить элемент справа.\n");
+        return;
+    }
+    dq->rear = (dq->rear + 1) % dq->capacity;
+    dq->data[dq->rear] = value;
+    dq->count++;
+}
+
+
+void printDeque(Deque* dq) {
+    if (isDequeEmpty(dq)) {
+        printf("Дек пуст.\n");
+        return;
+    }
+    printf("Содержимое дека: ");
+    for (int i = 0; i < dq->count; i++) {
+        int index = (dq->front + i) % dq->capacity;
+        printf("%d ", dq->data[index]);
+    }
+    printf("\n");
+}
+
+void freeDeque(Deque* dq) {
+    free(dq->data);
+}
+
+
+void runDequeTask() {
+    printf("\n=== Задача 2: Работа с деком ===\n");
+    int maxSize;
+    while (1) {
+        maxSize = getInt("Введите максимальный размер дека (целое число больше 0): ");
+        if (maxSize > 0)
+            break;
+        printf("Размер дека должен быть больше 0.\n");
+    }
+    Deque intDeque;
+    initDeque(&intDeque, maxSize);
+
+    printf("Ввод элементов в дек. Для завершения ввода введите -1.\n");
+    while (1) {
+        int inputVal = getInt("Введите число для дека: ");
+        if (inputVal == -1)
+            break;
+        if (isDequeFull(&intDeque)) {
+            printf("Дек полон, невозможно добавить новое число.\n");
+        }
+        else {
+            
+            pushRight(&intDeque, inputVal);
+        }
+    }
+
+    printDeque(&intDeque);
+
+    printf("\nРежим обновления дека:\n"
+        "При каждом вводе числа удаляется левый элемент дека.\n"
+        "Если удаленный элемент не совпадает с введенным числом, то введенное число добавляется справа.\n"
+        "Для завершения введите -1.\n");
+
+    while (1) {
+        int newInput = getInt("Введите число для обновления дека: ");
+        if (newInput == -1)
+            break;
+        int success;
+        int removedVal;
+        if (!isDequeEmpty(&intDeque)) {
+            removedVal = popLeft(&intDeque, &success);
+            printf("Удален элемент слева: %d\n", removedVal);
+            if (removedVal != newInput) {
+                if (isDequeFull(&intDeque)) {
+                    printf("Дек полон, невозможно добавить число.\n");
+                }
+                else {
+                    pushRight(&intDeque, newInput);
+                    printf("Введенное число %d добавлено в дек справа.\n", newInput);
+                }
+            }
+        }
+        else {
+            printf("Дек пуст. Вводимое число добавляется в дек справа.\n");
+            pushRight(&intDeque, newInput);
+        }
+        printDeque(&intDeque);
+    }
+
+    freeDeque(&intDeque);
+}
+
+
+
+  
+int areQueuesEqual(Queue* q1, Queue* q2) {
+    if (q1->count != q2->count)
+        return 0;
+    for (int i = 0; i < q1->count; i++) {
+        int index1 = (q1->front + i) % q1->capacity;
+        int index2 = (q2->front + i) % q2->capacity;
+        if (q1->data[index1] != q2->data[index2])
+            return 0;
+    }
+    return 1;
+}
+
+
+void runQueueComparisonTask() {
+    printf("\n=== Задача 3: Сравнение двух очередей ===\n");
+    int maxSize1, maxSize2;
+    while (1) {
+        maxSize1 = getInt("Введите максимальный размер первой очереди (целое число больше 0): ");
+        if (maxSize1 > 0)
+            break;
+        printf("Размер должен быть больше 0.\n");
+    }
+    while (1) {
+        maxSize2 = getInt("Введите максимальный размер второй очереди (целое число больше 0): ");
+        if (maxSize2 > 0)
+            break;
+        printf("Размер должен быть больше 0.\n");
+    }
+
+    Queue queue1, queue2;
+    initQueue(&queue1, maxSize1);
+    initQueue(&queue2, maxSize2);
+
+    printf("Ввод элементов для первой очереди. Для завершения ввода введите -1.\n");
+    while (1) {
+        int inputVal = getInt("Введите число для первой очереди: ");
+        if (inputVal == -1)
+            break;
+        if (isQueueFull(&queue1)) {
+            printf("Первая очередь полна, ввод завершен.\n");
+            break;
+        }
+        enqueue(&queue1, inputVal);
+    }
+
+    printf("Ввод элементов для второй очереди. Для завершения ввода введите -1.\n");
+    while (1) {
+        int inputVal = getInt("Введите число для второй очереди: ");
+        if (inputVal == -1)
+            break;
+        if (isQueueFull(&queue2)) {
+            printf("Вторая очередь полна, ввод завершен.\n");
+            break;
+        }
+        enqueue(&queue2, inputVal);
+    }
+
+    printf("\nСодержимое первой очереди:\n");
+    printQueue(&queue1);
+    printf("Содержимое второй очереди:\n");
+    printQueue(&queue2);
+
+    if (areQueuesEqual(&queue1, &queue2))
+        printf("Очереди равны.\n");
+    else
+        printf("Очереди не равны.\n");
+
+    freeQueue(&queue1);
+    freeQueue(&queue2);
+}
+
+
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+    int choice;
+    while (1) {
+        printf("\nМеню:\n");
+        printf("1 - Задача 1: Работа с очередью\n");
+        printf("2 - Задача 2: Работа с деком\n");
+        printf("3 - Задача 3: Сравнение двух очередей\n");
+        printf("0 - Выход\n");
+        choice = getInt("Введите номер задания: ");
+        switch (choice) {
+        case 1:
+            runQueueTask();
+            break;
+        case 2:
+            runDequeTask();
+            break;
+        case 3:
+            runQueueComparisonTask();
+            break;
+        case 0:
+            printf("Выход из программы.\n");
+            return 0;
+        default:
+            printf("Неверный выбор. Попробуйте снова.\n");
+        }
+    }
+    return 0;
+}
