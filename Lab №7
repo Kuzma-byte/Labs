@@ -1,0 +1,131 @@
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define COUNT 5   
+
+typedef struct Node {
+    int data;
+    struct Node* left;
+    struct Node* right;
+} Node;
+
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    if (newNode == NULL) {
+        printf("Ошибка выделения памяти!\n");
+        exit(1);
+    }
+    newNode->data = data;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+
+
+Node* insertNode(Node* root, int data) {
+    if (root == NULL)
+        return createNode(data);
+    if (data < root->data)
+        root->left = insertNode(root->left, data);
+    else
+        root->right = insertNode(root->right, data);
+    return root;
+}
+
+Node* findMin(Node* root) {
+    while (root && root->left != NULL)
+        root = root->left;
+    return root;
+}
+
+Node* deleteNode(Node* root, int data) {
+    if (root == NULL)
+        return root;
+
+    if (data < root->data)
+        root->left = deleteNode(root->left, data);
+    else if (data > root->data)
+        root->right = deleteNode(root->right, data);
+    else {
+        if (root->left == NULL) {
+            Node* temp = root->right;
+            free(root);
+            return temp;
+        }
+        else if (root->right == NULL) {
+            Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+        else {
+            Node* temp = findMin(root->right);
+            root->data = temp->data;
+            root->right = deleteNode(root->right, temp->data);
+        }
+    }
+    return root;
+}
+
+void printTree(Node* root, int space) {
+    if (root == NULL)
+        return;
+
+    space += COUNT;
+
+    printTree(root->right, space);
+
+    printf("\n");
+    for (int i = COUNT; i < space; i++)
+        printf(" ");
+    printf("%d\n", root->data);
+
+    printTree(root->left, space);
+}
+
+int sumTree(Node* root) {
+    if (root == NULL)
+        return 0;
+    return root->data + sumTree(root->left) + sumTree(root->right);
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+    Node* root = NULL;
+    int choice, data;
+
+    while (1) {
+        printf("\n====== Меню ======\n");
+        printf("1. Вставка элемента\n");
+        printf("2. Удаление элемента\n");
+        printf("3. Вывод дерева\n");
+        printf("4. Сумма элементов дерева\n");
+        printf("5. Выход\n");
+        printf("Введите Ваш выбор: ");
+        scanf_s("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            printf("Введите число для вставки: ");
+            scanf_s("%d", &data);
+            root = insertNode(root, data);
+            break;
+        case 2:
+            printf("Введите число для удаления: ");
+            scanf_s("%d", &data);
+            root = deleteNode(root, data);
+            break;
+        case 3:
+            printf("\nВизуализация дерева:\n");
+            printTree(root, 0);
+            break;
+        case 4:
+            printf("Сумма элементов дерева: %d\n", sumTree(root));
+            break;
+        case 5:
+            exit(0);
+        default:
+            printf("Неверный выбор! Попробуйте снова.\n");
+        }
+    }
+    return 0;
+}
